@@ -10,10 +10,7 @@ logger.setLevel(logging.INFO)
 logging.basicConfig(format=LOG_FORMAT)
 
 embedding_model_dict = {
-    "ernie-tiny": "nghuyong/ernie-3.0-nano-zh",
-    "ernie-base": "nghuyong/ernie-3.0-base-zh",
-    "text2vec-base": "shibing624/text2vec-base-chinese",
-    "text2vec": "GanymedeNil/text2vec-large-chinese",
+    "text2vec": "/root/model/text2vec-large-chinese",
 }
 
 # Embedding model name
@@ -24,16 +21,11 @@ EMBEDDING_DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backe
 
 # supported LLM models
 llm_model_dict = {
-    "chatyuan": "ClueAI/ChatYuan-large-v2",
-    "chatglm-6b-int4-qe": "THUDM/chatglm-6b-int4-qe",
-    "chatglm-6b-int4": "THUDM/chatglm-6b-int4",
-    "chatglm-6b-int8": "THUDM/chatglm-6b-int8",
-    "chatglm-6b": "THUDM/chatglm-6b",
-    "moss": "fnlp/moss-moon-003-sft",
+    "chatglm-6b-int8": "/root/model/chatglm-6b-int8",
 }
 
 # LLM model name
-LLM_MODEL = "chatglm-6b"
+LLM_MODEL = "chatglm-6b-int8"
 
 # LLM lora path，默认为空，如果有请直接指定文件夹路径
 LLM_LORA_PATH = ""
@@ -71,10 +63,10 @@ CHUNK_SIZE = 250
 LLM_HISTORY_LEN = 3
 
 # return top-k text chunk from vector store
-VECTOR_SEARCH_TOP_K = 5
+VECTOR_SEARCH_TOP_K = 1
 
 # 知识检索内容相关度 Score, 数值范围约为0-1100，如果为0，则不生效，经测试设置为小于500时，匹配结果更精准
-VECTOR_SEARCH_SCORE_THRESHOLD = 0
+VECTOR_SEARCH_SCORE_THRESHOLD = 700
 
 NLTK_DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "nltk_data")
 

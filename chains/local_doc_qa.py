@@ -55,7 +55,8 @@ def write_check_file(filepath, docs):
 def generate_prompt(related_docs: List[str], query: str,
                     prompt_template=PROMPT_TEMPLATE) -> str:
     context = "\n".join([doc.page_content for doc in related_docs])
-    prompt = prompt_template.replace("{question}", query).replace("{context}", context)
+    prompt = query
+    #prompt = prompt_template.replace("{question}", query).replace("{context}", context)
     return prompt
 
 
@@ -269,6 +270,19 @@ class LocalDocQA:
                         "source_documents": related_docs_with_score}
             yield response, history
             torch_gc()
+
+    def get_knowledge_based_conent(self, query, vs_path):
+        vector_store = FAISS.load_local(vs_path, self.embeddings)
+        FAISS.similarity_search_with_score_by_vector = similarity_search_with_score_by_vector
+        vector_store.chunk_size = self.chunk_size
+        vector_store.chunk_conent = self.chunk_conent
+        vector_store.score_threshold = self.score_threshold
+        related_docs_with_score = vector_store.similarity_search_with_score(query, k=self.top_k)
+        torch_gc()
+        prompt = "\n".join([doc.page_content for doc in related_docs_with_score])
+        response = {"query": query,
+                    "source_documents": related_docs_with_score}
+        return response, prompt
 
     # query      查询内容
     # vs_path    知识库路径

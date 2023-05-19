@@ -34,17 +34,29 @@ def get_answer(query, vs_path, history, mode, score_threshold=VECTOR_SEARCH_SCOR
                vector_search_top_k=VECTOR_SEARCH_TOP_K, chunk_conent: bool = True,
                chunk_size=CHUNK_SIZE, streaming: bool = STREAMING):
     if mode == "知识库问答" and vs_path is not None and os.path.exists(vs_path):
-        for resp, history in local_doc_qa.get_knowledge_based_answer(
-                query=query, vs_path=vs_path, chat_history=history, streaming=streaming):
-            source = "\n\n"
-            source += "".join(
-                [f"""<details> <summary>出处 [{i + 1}] {os.path.split(doc.metadata["source"])[-1]}</summary>\n"""
-                 f"""{doc.page_content}\n"""
-                 f"""</details>"""
-                 for i, doc in
-                 enumerate(resp["source_documents"])])
-            history[-1][-1] += source
+        resp, prompt = local_doc_qa.get_knowledge_based_conent(query=query, vs_path=vs_path)
+        if not resp["source_documents"]:
+            for resp, history in local_doc_qa.get_knowledge_based_answer(query=query, vs_path=vs_path, chat_history=history, streaming=streaming):
+                source = "\n\n"
+                source += "".join(
+                    [f"""<details> <summary>出处 [{i + 1}] {os.path.split(doc.metadata["source"])[-1]}</summary>\n"""
+                     f"""{doc.page_content}\n"""
+                     f"""</details>"""
+                     for i, doc in enumerate(resp["source_documents"])])
+
+                history[-1][-1] += source
+                yield history, ""
+
+        else:
+            source = "\n".join(
+                [
+                    f"""<summary>【知识相关度 Score】：{doc.metadata["score"]} - 【出处{i + 1}】：<br>{os.path.split(doc.metadata["source"])[-1]} </summary>\n"""
+                    for i, doc in
+                    enumerate(resp["source_documents"])])
+            history.append([query, "以下内容为知识库中满足设置条件的匹配结果：\n\n" + source])
             yield history, ""
+
+
     elif mode == "知识库测试":
         if os.path.exists(vs_path):
             resp, prompt = local_doc_qa.get_knowledge_based_conent_test(query=query, vs_path=vs_path,
